@@ -1,0 +1,115 @@
+// Common for all projects
+allprojects {
+	apply plugin: 'java'
+	apply plugin: 'io.spring.dependency-management'
+	apply plugin: 'org.springframework.boot'
+
+	sourceCompatibility = 11
+	targetCompatibility = 11
+
+	repositories {
+		mavenCentral()
+	}
+
+	dependencies {
+		// Prod
+		implementation 'org.apache.logging.log4j:log4j-core:2.12.1'
+		implementation 'com.vlkan.log4j2:log4j2-logstash-layout:0.21'
+
+		// Test
+		testImplementation 'org.junit.jupiter:junit-jupiter-api:5.5.2'
+		testImplementation 'org.mockito:mockito-core:2.+'
+		testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.5.2'
+	}
+
+	test {
+		useJUnitPlatform()
+
+		testLogging {
+			events "passed", "skipped", "failed"
+		}
+	}
+
+
+	task view_paths {
+		doLast { task ->
+			println "$task.project.name"
+			println "------------------"
+			println "Main: $sourceSets.main.java.srcDirTrees"
+			println "   Resources: $sourceSets.main.resources.srcDirTrees"
+			println "Tests: $sourceSets.test.java.srcDirTrees"
+			println "   Resources: $sourceSets.test.resources.srcDirTrees"
+		}
+	}
+}
+
+// All subprojects (located in src/*)
+subprojects {
+	group = "com.prueba.${rootProject.name}"
+
+	sourceSets {
+		main {
+			java { srcDirs = ['main'] }
+			resources { srcDirs = ['main/resources'] }
+		}
+
+		test {
+			java { srcDirs = ['test'] }
+			resources { srcDirs = ['test/resources'] }
+		}
+	}
+
+	dependencies {
+		implementation 'org.springframework.boot:spring-boot-starter-web:2.1.8.RELEASE'
+
+		testImplementation 'org.springframework.boot:spring-boot-starter-test:2.2.1.RELEASE'
+
+	}
+
+	bootJar {
+		enabled = false
+	}
+
+	jar {
+		enabled = true
+	}
+}
+
+// Main project (located in apps/)
+buildscript {
+	repositories {
+		mavenCentral()
+	}
+	dependencies {
+		classpath('org.springframework.boot:spring-boot-gradle-plugin:2.2.1.RELEASE')
+	}
+}
+
+sourceSets {
+	main {
+		java { srcDirs = ['apps/main'] }
+		resources { srcDirs = ['apps/main/resources'] }
+	}
+
+	test {
+		java { srcDirs = ['apps/test'] }
+		resources { srcDirs = ['apps/test/resources'] }
+	}
+}
+
+bootJar {
+	baseName = 'ddd-prueba'
+	version = '0.0.1'
+}
+
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-web:2.1.8.RELEASE'
+
+	implementation project(":shared")
+	implementation project(":backoffice")
+	implementation project(":mooc")
+
+	testImplementation 'org.springframework.boot:spring-boot-starter-test:2.1.8.RELEASE'
+}
+
